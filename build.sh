@@ -252,17 +252,23 @@ build_project() {
     
     # Configure with CMake
     echo -e "${YELLOW}Configuring with CMake...${NC}"
-    cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_CLIENT=ON -DBUILD_SERVER=ON
+    cmake .. -DCMAKE_BUILD_TYPE=Debug \
+         -DBUILD_CLIENT=ON \
+         -DBUILD_SERVER=ON \
+         -DBUILD_TESTS=OFF
     
     # Build the project
     echo -e "${YELLOW}Building the project...${NC}"
     cmake --build . -- -j$(nproc)
     
+    echo "Creating runtime directories..."
+    mkdir -p config data logs
+
     # Copy configuration if it doesn't exist in the build directory
     if [ ! -d "config" ]; then
         echo "Copying configuration files..."
         mkdir -p config
-        cp -r ../config/* config/
+        cp -r ../config/* config/ 2>/dev/null || echo "No config files found to copy."
     fi
  
  # Create necessary directories

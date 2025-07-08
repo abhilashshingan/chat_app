@@ -1,31 +1,51 @@
 # Common library shared between client and server
 
-# Common library shared between client and server
-
+# Source files for the common library
 set(COMMON_SOURCES
     message.cpp
+    chat_message.cpp
     protocol.cpp
+    tcp_connection.cpp
     crypto.cpp
     config.cpp
-   config_loader.cpp  # Add the new source file
 )
 
-add_library(chat_common STATIC ${COMMON_SOURCES})
+# Create static library
+add_library(chatapp_common STATIC ${COMMON_SOURCES})
 
-target_link_libraries(chat_common
+# Link with Boost libraries
+find_package(Boost 1.70 REQUIRED COMPONENTS system thread)
+target_link_libraries(chatapp_common
+    PUBLIC
+        Boost::system
+        Boost::thread
+)
+
+# Link with OpenSSL if available
+find_package(OpenSSL)
+if(OpenSSL_FOUND)
+    target_link_libraries(chatapp_common
+        PRIVATE
+            OpenSSL::SSL
+            OpenSSL::Crypto
+    )
+endif()
+
+# Link with nlohmann_json
+find_package(nlohmann_json 3.9 REQUIRED)
+target_link_libraries(chatapp_common
     PRIVATE
         nlohmann_json::nlohmann_json
-        OpenSSL::SSL
-        OpenSSL::Crypto
-        ${CMAKE_THREAD_LIBS_INIT}
 )
 
- # For C++17 filesystem support on GCC
- if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-     target_link_libraries(chat_common PRIVATE stdc++fs)
- endif()
-
-target_include_directories(chat_common
+# Include directories
+target_include_directories(chatapp_common
     PUBLIC
         ${CMAKE_SOURCE_DIR}/include
+)
+
+# Set compile definitions
+target_compile_definitions(chatapp_common 
+    PRIVATE 
+        BOOST_ASIO_NO_DEPRECATED
 )

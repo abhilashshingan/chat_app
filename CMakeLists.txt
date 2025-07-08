@@ -6,6 +6,46 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Options
+option(BUILD_CLIENT "Build chat client" ON)
+option(BUILD_SERVER "Build chat server" ON)
+option(BUILD_TESTS "Build tests" OFF)
+option(BUILD_EXAMPLES "Build example programs" ON)
+
+# For JSON support
+include(FetchContent)
+
+# Fetch JSON library with specific configuration to avoid issues
+FetchContent_Declare(
+    json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.2
+)
+# Prevent auto-update and add JSON as a system include to avoid warnings
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+set(JSON_MultipleHeaders ON CACHE INTERNAL "")
+set(JSON_SystemInclude ON CACHE INTERNAL "")
+FetchContent_MakeAvailable(json)
+
+# Find Boost package
+find_package(Boost 1.70 COMPONENTS system thread REQUIRED)
+message(STATUS "Found Boost: ${Boost_INCLUDE_DIRS}")
+
+# Find OpenSSL (optional)
+find_package(OpenSSL QUIET)
+if(OpenSSL_FOUND)
+    message(STATUS "Found OpenSSL: ${OPENSSL_INCLUDE_DIR}")
+    add_definitions(-DWITH_OPENSSL)
+endif()
+
+# Include directories
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+# Set output directories
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 # Add compiler warnings
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
